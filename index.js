@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 require('dotenv').config()
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 5000;
 
 // middleware
@@ -30,11 +30,11 @@ async function run() {
         const toysCollection = client.db('toyLand').collection('allToys');
 
         // app.get('/allToys', async (req, res) => {
-            
+
         //     const data = req.query;
         //     const category = req.query.category;
         //     const search = req.query.search;
-            
+
         //     let query = {};
         //     if (category) {
         //         query = {sub_category: category}
@@ -56,12 +56,11 @@ async function run() {
             res.send({ result });
         });
 
-
-
         app.get("/allToys", async (req, res) => {
             const data = req.query;
 
             const category = req.query.category;
+            const search = req.query.search;
 
             let query = {};
 
@@ -69,11 +68,28 @@ async function run() {
                 query = { sub_category: category };
             }
 
+            if (search) {
+                search = { name: { $regex: search, $options: 'i' } }
+            }
+
+            const page = parseInt(data.page) || 0;
+            const limit = parseInt(data.limit) || 20;
+            const skip = page * limit;
+
             const result = await toysCollection
                 .find(query)
+                .skip(skip)
+                .limit(limit)
                 .toArray();
             res.send(result);
         });
+
+        app.get('/toy/:id', async(req, res) =>{
+            const id = req.params.id;
+            const query = {_id: new ObjectId(id)};
+            const result = await toysCollection.findOne(query);
+            res.send(result)
+        } )
 
 
         app.post('/allToys', async (req, res) => {
