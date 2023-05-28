@@ -29,27 +29,7 @@ async function run() {
 
         const toysCollection = client.db('toyLand').collection('allToys');
 
-        // app.get('/allToys', async (req, res) => {
-
-        //     const data = req.query;
-        //     const category = req.query.category;
-        //     const search = req.query.search;
-
-        //     let query = {};
-        //     if (category) {
-        //         query = {sub_category: category}
-        //     }
-        //     if(search){
-        //         query= {name: {regex:search, options: "i"}}
-        //     }
-
-
-
-        //     const result = await toysCollection
-        //         .find(query)
-        //         .toArray();
-        //     res.send(result);
-        // })
+        
 
         app.get("/allToy", async (req, res) => {
             const result = await toysCollection.estimatedDocumentCount();
@@ -59,18 +39,13 @@ async function run() {
         app.get("/allToys", async (req, res) => {
             const data = req.query;
 
-            const category = req.query.category;
-            const search = req.query.search;
-
+            const category = req.query?.category;
             let query = {};
 
             if (category) {
                 query = { sub_category: category };
             }
 
-            if (search) {
-                search = { name: { $regex: search, $options: 'i' } }
-            }
 
             const page = parseInt(data.page) || 0;
             const limit = parseInt(data.limit) || 20;
@@ -84,13 +59,26 @@ async function run() {
             res.send(result);
         });
 
-        app.get('/toy/:id', async(req, res) =>{
+        app.get('/toy/:id', async (req, res) => {
             const id = req.params.id;
-            const query = {_id: new ObjectId(id)};
+            const query = { _id: new ObjectId(id) };
             const result = await toysCollection.findOne(query);
             res.send(result)
-        } )
+        })
 
+
+        app.get('/myToys', async (req, res) => {
+            const email = req.query?.email;
+
+            let query = {}
+
+            if(email){
+                 query = {email: email}
+            }
+
+            const result = await toysCollection.find(query).toArray();
+            res.send(result);
+        })
 
         app.post('/allToys', async (req, res) => {
             const addToy = req.body;
