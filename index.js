@@ -29,7 +29,7 @@ async function run() {
 
         const toysCollection = client.db('toyLand').collection('allToys');
 
-        
+
 
         app.get("/allToy", async (req, res) => {
             const result = await toysCollection.estimatedDocumentCount();
@@ -72,19 +72,53 @@ async function run() {
 
             let query = {}
 
-            if(email){
-                 query = {email: email}
+            if (email) {
+                query = { email: email }
             }
 
             const result = await toysCollection.find(query).toArray();
             res.send(result);
         })
 
+
         app.post('/allToys', async (req, res) => {
             const addToy = req.body;
             const result = await toysCollection.insertOne(addToy);
             res.send(result);
         });
+
+
+        app.put('/myToys/:id', async (req, res) => {
+            const id = req.params.id;
+            const toy = req.body;
+
+            const filter = { _id: new ObjectId(id) }
+
+            const options = { upsert: true }
+
+            const updatedToy = {
+                $set: {
+                    title: toy?.title,
+                    photoUrl: toy?.photoUrl,
+                    description: toy?.description,
+                    price: toy?.price,
+                    quantity: toy?.quantity,
+                    rating: toy?.rating,
+                    sub_category: toy?.sub_category,
+                }
+            }
+
+            const result = await toysCollection.updateOne(filter, updatedToy, options)
+
+            res.send(result)
+        })
+
+        app.delete('/myToys/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+            const result = await toysCollection.deleteOne(filter);
+            res.send(result)
+        })
 
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
