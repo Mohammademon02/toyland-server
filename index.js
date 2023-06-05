@@ -38,13 +38,17 @@ async function run() {
 
         app.get("/allToys", async (req, res) => {
             const data = req.query;
-            const search = req.query.body
-            console.log(search)
             const category = req.query?.category;
+            const search = req.query.search;
+
             let query = {};
 
             if (category) {
                 query = { sub_category: category };
+            }
+
+            if (search) {
+                query = { title: { $regex: search, $options: 'i' } }
             }
 
 
@@ -71,7 +75,7 @@ async function run() {
             const sortData = req.query.sort;
 
             let query = {}
-            
+
             if (email) {
                 query = { email: email }
             }
