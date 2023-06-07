@@ -29,20 +29,12 @@ async function run() {
 
         const toysCollection = client.db('toyLand').collection('allToys');
 
-
-
-        app.get("/allToy", async (req, res) => {
-            const result = await toysCollection.estimatedDocumentCount();
-            res.send({ result });
-        });
-
         app.get("/allToys", async (req, res) => {
             const data = req.query;
             const category = req.query?.category;
             const search = req.query.search;
 
             let query = {};
-
             if (category) {
                 query = { sub_category: category };
             }
@@ -52,14 +44,22 @@ async function run() {
             }
 
 
-            // const page = parseInt(data.page) || 0;
-            // const limit = parseInt(data.limit) || 20;
-            // const skip = page * limit;
+            const page = parseInt(data.page) || 0;
+            const limit = parseInt(data.limit) || 20;
+            const skip = page * limit;
 
             const result = await toysCollection
                 .find(query)
+                .skip(skip)
+                .limit(limit)
                 .toArray();
             res.send(result);
+        });
+
+
+        app.get("/totalToys", async (req, res) => {
+            const result = await toysCollection.estimatedDocumentCount();
+            res.send({ totalToys: result });
         });
 
         app.get('/toy/:id', async (req, res) => {
